@@ -8,7 +8,6 @@ import sqlite3
 import logging
 
 from urllib.request import Request, urlopen
-
 from bs4 import BeautifulSoup
 
 class WordsDownloader:
@@ -93,7 +92,9 @@ class Db:
 
             if not words is None:
                 for word in words:
-                    cur.execute("insert into words(word) select '" + word + "' where not exists(select 1 from words where word = '" + word + "')")
+                    cur.execute("insert into words(word) select '" \
+                            + word + "' where not exists(select 1 from words where word = '" \
+                            + word + "')")
 
             cur.execute("update last_letters set letters = '" + letters + "'")
             self.conn.commit()
@@ -101,7 +102,7 @@ class Db:
             self.conn.rollback()
             raise
 
-class Main:
+class Scrabble123Scrapper:
     def __init__(self):
         logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
         self.alphabet = 'aąbcćdeęfghijklłmnńoóprsśtuwyzźż'
@@ -164,9 +165,9 @@ class Main:
             loop = False
             try:
                 for i in range(self.min_length, self.max_length + 1):
-                    Main._perm(self.alphabet, self._on_next_perm, i)
-            except Exception as ex:
+                    Scrabble123Scrapper._perm(self.alphabet, self._on_next_perm, i)
+            except BaseException as ex:
                 logging.error(ex)
                 loop = True
 
-Main().download()
+Scrabble123Scrapper().download()
