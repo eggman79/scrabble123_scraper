@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import os
 import os.path
 import re
@@ -103,13 +104,13 @@ class Db:
             raise
 
 class Scrabble123Scrapper:
-    def __init__(self):
+    def __init__(self, min_length, max_length, db_file_name):
         logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
         self.alphabet = 'aąbcćdeęfghijklłmnńoóprsśtuwyzźż'
-        self.min_length = 2
-        self.max_length = 32
+        self.min_length = min_length
+        self.max_length = max_length
         self.words_downloader = WordsDownloader(self.alphabet)
-        self.db = Db('words.db')
+        self.db = Db(db_file_name)
         self.last_letters = self.db.last_letters()
         self.omit_letters = not self.last_letters is None
 
@@ -160,4 +161,11 @@ class Scrabble123Scrapper:
                 logging.error(ex)
                 loop = True
 
-Scrabble123Scrapper().download()
+
+parser = argparse.ArgumentParser()
+parser.add_argument('min', help='minimum word length', type=int)
+parser.add_argument('max', help='maximum word length', type=int)
+parser.add_argument('db_file_name', help='database ', type=str)
+args = parser.parse_args()
+
+Scrabble123Scrapper(args.min, args.max, args.db_file_name).download()
