@@ -114,33 +114,23 @@ class Scrabble123Scrapper:
         self.omit_letters = not self.last_letters is None
 
     @staticmethod
-    def _perm(iterable, fun, repeat=None):
+    def _combinations(iterable, fun, r):
         pool = tuple(iterable)
-        number = len(pool)
-
-        repeat = number if repeat is None else repeat
-        if repeat > number:
+        n = len(pool)
+        if not n and r:
             return
-
-        indices = list(range(number))
-        cycles = list(range(number, number - repeat, -1))
-        fun(tuple(pool[i] for i in indices[:repeat]))
-
-        while number:
-            for i in reversed(range(repeat)):
-                cycles[i] -= 1
-                if cycles[i] == 0:
-                    indices[i:] = indices[i+1:] + indices[i:i+1]
-                    cycles[i] = number - i
-                else:
-                    j = cycles[i]
-                    indices[i], indices[-j] = indices[-j], indices[i]
-                    fun(tuple(pool[i] for i in indices[:repeat]))
+        indices = [0] * r
+        fun(tuple(pool[i] for i in indices))
+        while True:
+            for i in reversed(range(r)):
+                if indices[i] != n - 1:
                     break
             else:
                 return
+            indices[i:] = [indices[i] + 1] * (r - i)
+            fun(tuple(pool[i] for i in indices))
 
-    def _on_next_perm(self, tpl):
+    def _on_next_comb(self, tpl):
         letters = ''.join(tpl)
 
         if self.omit_letters:
@@ -165,7 +155,7 @@ class Scrabble123Scrapper:
             loop = False
             try:
                 for i in range(self.min_length, self.max_length + 1):
-                    Scrabble123Scrapper._perm(self.alphabet, self._on_next_perm, i)
+                    Scrabble123Scrapper._combinations(self.alphabet, self._on_next_comb, i)
             except BaseException as ex:
                 logging.error(ex)
                 loop = True
