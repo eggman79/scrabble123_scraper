@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import traceback
+import argparse
+import urllib.parse
 import re
 import bs4
 import urllib3
-import argparse
-import traceback
-import urllib.parse
 
 class Downloader:
     main_url = 'https://scrabble123.pl'
@@ -24,10 +24,12 @@ class Downloader:
 
         return None
 
-    def _html_to_tree(self, html):
+    @staticmethod
+    def _html_to_tree(html):
         return bs4.BeautifulSoup(html, 'html.parser')
 
-    def _get_words_by_len_items(self, tree):
+    @staticmethod
+    def _get_words_by_len_items(tree):
         body = tree.body
         items = []
 
@@ -43,7 +45,7 @@ class Downloader:
 
         while True:
             content = self._get_html(url)
-            tree = self._html_to_tree(content)
+            tree = Downloader._html_to_tree(content)
             next_page_url = None
 
             for a_item in tree.find_all('a', {'href': True}, recursive=True):
@@ -65,8 +67,8 @@ class Downloader:
     def download(self):
         url = Downloader.main_url + urllib.parse.quote(Downloader.words_by_len_url_postfix)
         content = self._get_html(url)
-        tree = self._html_to_tree(content)
-        items = self._get_words_by_len_items(tree)
+        tree = Downloader._html_to_tree(content)
+        items = Downloader._get_words_by_len_items(tree)
 
         for item in items:
             self._download_items(item)
@@ -82,6 +84,3 @@ except SystemExit:
     pass
 except:
     traceback.print_exc()
-
-
-
