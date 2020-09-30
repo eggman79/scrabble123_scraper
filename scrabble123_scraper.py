@@ -9,9 +9,9 @@ import bs4
 import urllib3
 
 class Downloader:
-    main_url = 'https://scrabble123.pl'
-    words_by_len_url_postfix = '/slownik-scrabble'
-    max_words_in_buffer = 1024
+    MAIN_URL = 'https://scrabble123.pl'
+    WORDS_BY_LEN_URL_POSTFIX = '/slownik-scrabble'
+    MAX_WORDS_IN_BUFFER = 1024
 
     def __init__(self, output_filename):
         self.http = urllib3.PoolManager()
@@ -43,7 +43,7 @@ class Downloader:
     def _add_word(self, word):
         self.words.append(word)
 
-        if Downloader.max_words_in_buffer == len(self.words):
+        if Downloader.MAX_WORDS_IN_BUFFER == len(self.words):
             self._flush_words()
 
     def _flush_words(self):
@@ -54,7 +54,7 @@ class Downloader:
         self.words.clear()
 
     def _download_items(self, item):
-        url = Downloader.main_url + urllib.parse.quote(item)
+        url = Downloader.MAIN_URL + urllib.parse.quote(item)
 
         while True:
             content = self._get_html(url)
@@ -78,12 +78,12 @@ class Downloader:
             if next_page_url is None or next_page_url == '#':
                 break
 
-            url = Downloader.main_url + urllib.parse.quote(next_page_url)
+            url = Downloader.MAIN_URL + urllib.parse.quote(next_page_url)
 
         self._flush_words()
 
     def download(self):
-        url = Downloader.main_url + urllib.parse.quote(Downloader.words_by_len_url_postfix)
+        url = Downloader.MAIN_URL + urllib.parse.quote(Downloader.WORDS_BY_LEN_URL_POSTFIX)
         content = self._get_html(url)
         tree = Downloader._html_to_tree(content)
 
