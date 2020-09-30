@@ -34,6 +34,7 @@ class Downloader:
 
         for a_item in body.find_all('a', {'href': True}, recursive=True):
             href = a_item['href']
+
             if not re.match(r"\/lista-slow-[a-z]+", href) is None:
                 yield href
 
