@@ -11,10 +11,12 @@ import urllib3
 class Downloader:
     main_url = 'https://scrabble123.pl'
     words_by_len_url_postfix = '/slownik-scrabble'
+    max_words_in_buffer = 1024
 
     def __init__(self, output_filename):
         self.http = urllib3.PoolManager()
         self.output = open(output_filename, 'a')
+        self.words = []
 
     def _get_html(self, url):
         resp = self.http.request('GET', url)
@@ -38,6 +40,19 @@ class Downloader:
             if not re.match(r"\/lista-slow-[a-z]+", href) is None:
                 yield href
 
+    def _add_word(self, word):
+        self.words.append(word)
+
+        if Downloader.max_words_in_buffer == len(self.words):
+            self._flush_words()
+
+    def _flush_words(self):
+        if not self.words:
+            return
+
+        self.output.write('\n'.join(self.words) + '\n')
+        self.words.clear()
+
     def _download_items(self, item):
         url = Downloader.main_url + urllib.parse.quote(item)
 
@@ -53,14 +68,19 @@ class Downloader:
                 if not match is None:
                     word = urllib.parse.unquote(match.group(1))
                     print('page: %s word: %s' % (url, word))
-                    self.output.write(word + '\n')
-                elif a_item.get_text() and a_item.get_text().strip() == '»':
-                    next_page_url = a_item['href'].strip()
+                    self._add_word(word)
+                else:
+                    text = a_item.get_text()
+
+                    if text and text.strip() == '»':
+                        next_page_url = a_item['href'].strip()
 
             if next_page_url is None or next_page_url == '#':
                 break
 
             url = Downloader.main_url + urllib.parse.quote(next_page_url)
+
+        self._flush_words()
 
     def download(self):
         url = Downloader.main_url + urllib.parse.quote(Downloader.words_by_len_url_postfix)
@@ -74,7 +94,7 @@ class Downloader:
 
 try:
     parser = argparse.ArgumentParser()
-    parser.add_argument('output', help='output filename with words', type=str)
+    parser.add_argument('output', help='output filename', type=str)
     args = parser.parse_args()
     Downloader(args.output).download()
 except SystemExit:
