@@ -31,14 +31,11 @@ class Downloader:
     @staticmethod
     def _get_words_by_len_items(tree):
         body = tree.body
-        items = []
 
         for a_item in body.find_all('a', {'href': True}, recursive=True):
             href = a_item['href']
             if not re.match(r"\/lista-slow-[a-z]+", href) is None:
-                items.append(href)
-
-        return items
+                yield href
 
     def _download_items(self, item):
         url = Downloader.main_url + urllib.parse.quote(item)
@@ -68,9 +65,8 @@ class Downloader:
         url = Downloader.main_url + urllib.parse.quote(Downloader.words_by_len_url_postfix)
         content = self._get_html(url)
         tree = Downloader._html_to_tree(content)
-        items = Downloader._get_words_by_len_items(tree)
 
-        for item in items:
+        for item in Downloader._get_words_by_len_items(tree):
             self._download_items(item)
 
         self.output.close()
