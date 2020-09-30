@@ -10,7 +10,7 @@ import urllib.parse
 
 class Downloader:
     main_url = 'https://scrabble123.pl'
-    words_by_len = '/slownik-scrabble'
+    words_by_len_url_postfix = '/slownik-scrabble'
 
     def __init__(self, output_filename):
         self.http = urllib3.PoolManager()
@@ -27,7 +27,7 @@ class Downloader:
     def _html_to_tree(self, html):
         return bs4.BeautifulSoup(html, 'html.parser')
 
-    def _get_words_by_len_items(self, tree):
+    def _get_words_by_len_url_postfix_items(self, tree):
         body = tree.body
         items = []
 
@@ -63,13 +63,15 @@ class Downloader:
             url = Downloader.main_url + urllib.parse.quote(next_page_url)
 
     def download(self):
-        url = Downloader.main_url + urllib.parse.quote(Downloader.words_by_len)
+        url = Downloader.main_url + urllib.parse.quote(Downloader.words_by_len_url_postfix)
         content = self._get_html(url)
         tree = self._html_to_tree(content)
-        items = self._get_words_by_len_items(tree)
+        items = self._get_words_by_len_url_postfix_items(tree)
 
         for item in items:
             self._download_items(item)
+
+        self.output.close()
 
 try:
     parser = argparse.ArgumentParser()
